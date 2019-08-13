@@ -1,0 +1,84 @@
+#Base image
+FROM frolvlad/alpine-glibc
+
+#Labels and Credits
+LABEL \
+    name="MobSF" \
+    author="Ajin Abraham <ajin25@gmail.com>" \
+    maintainer="Ajin Abraham <ajin25@gmail.com>" \
+    contributor_1="OscarAkaElvis <oscar.alfonso.diaz@gmail.com>" \
+    contributor_2="Vincent Nadal <vincent.nadal@orange.fr>" \
+    description="Mobile Security Framework is an intelligent, all-in-one open source mobile application (Android/iOS/Windows) automated pen-testing framework capable of performing static, dynamic analysis and web API testing"
+
+#Environment vars
+ENV DEBIAN_FRONTEND="noninteractive" \
+    IN_DOCKER=True 
+
+#Update the repository sources list
+#Install Required Libs
+#see https://docs.docker.com/develop/develop-images/dockerfile_best-practices/#run
+RUN echo 'http://dl-cdn.alpinelinux.org/alpine/edge/community' >> /etc/apk/repositories
+RUN apk add --update --no-cache \
+    bash \
+    bash-completion \
+    git \
+    libffi-dev \
+    python3 \
+    python3-dev \
+    py-pip \
+    libgcc \
+    libstdc++ \
+    libxml2-dev \
+    libxslt-dev \
+    musl \
+    build-base \
+    openjdk8-jre \
+    freetype-dev \
+    libgcc \
+    libstdc++ \
+    libx11 \
+    libcrypto1.1\
+    libssl1.1 \
+    glib \
+    libxrender \
+    libxext \
+    libintl \ 
+    openssl-dev \
+    ca-certificates \
+    fontconfig \
+    freetype \
+    ttf-dejavu \
+    ttf-droid \
+    ttf-freefont \
+    ttf-liberation \
+    ttf-ubuntu-font-family \
+    fontconfig \
+    msttcorefonts-installer \
+    && update-ms-fonts \
+    && fc-cache -f 
+    
+
+COPY . /root/Mobile-Security-Framework-MobSF
+RUN ["ln", "-s", "/root/Mobile-Security-Framework-MobSF/3d_party/wkhtmltopdf", "/bin/"]
+WORKDIR /root/Mobile-Security-Framework-MobSF
+RUN pip3 install --upgrade pip && \
+    pip3 install --no-cache-dir wheel && \
+    pip3 wheel --no-cache-dir --wheel-dir=/tmp/yara-python --build-option="build" --build-option="--enable-dex" git+https://github.com/VirusTotal/yara-python.git && \
+    pip3 install --no-cache-dir --no-index --find-links=/tmp/yara-python yara-python && \
+    pip3 install --no-cache-dir -r requirements.txt
+
+  
+#Add apktool working path
+RUN mkdir -p /root/.local/share/apktool/framework
+
+#Enable Use Home Directory
+RUN sed -i 's/USE_HOME = False/USE_HOME = True/g' MobSF/settings.py
+
+#Expose MobSF Port
+EXPOSE 8000
+
+RUN python3 manage.py makemigrations && \
+    python3 manage.py migrate
+
+#Run MobSF
+CMD ["gunicorn", "-b", "0.0.0.0:8000", "MobSF.wsgi:application", "--workers=1", "--threads=4", "--timeout=1800"]  

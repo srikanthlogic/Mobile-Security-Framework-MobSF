@@ -61,13 +61,18 @@ RUN apk add --update --no-cache \
 COPY . /root/Mobile-Security-Framework-MobSF
 RUN ["ln", "-s", "/root/Mobile-Security-Framework-MobSF/3d_party/wkhtmltopdf", "/bin/"]
 WORKDIR /root/Mobile-Security-Framework-MobSF
-RUN pip3 install --upgrade pip && \
+RUN pip3 install --no-cache-dir --upgrade pip && \
     pip3 install --no-cache-dir wheel && \
     pip3 wheel --no-cache-dir --wheel-dir=/tmp/yara-python --build-option="build" --build-option="--enable-dex" git+https://github.com/VirusTotal/yara-python.git && \
     pip3 install --no-cache-dir --no-index --find-links=/tmp/yara-python yara-python && \
-    pip3 install --no-cache-dir -r requirements.txt
+    pip3 install --no-cache-dir -r requirements.txt && \
+    rm -fr /tmp/yara-python
 
-  
+#Clean a little bit
+RUN apk del \
+    git \
+    msttcorefonts-installer
+
 #Add apktool working path
 RUN mkdir -p /root/.local/share/apktool/framework
 

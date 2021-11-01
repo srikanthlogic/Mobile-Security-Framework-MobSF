@@ -1,7 +1,7 @@
 version: "3.8"
 services:
   web:
-    image: opensecurity/mobile-security-framework-mobsf:latest
+    image: ghcr.io/srikanthlogic/mobsf_healthcheck:latest
     hostname: mobsfhost
     extra_hosts:
       - "host.docker.internal:host-gateway"

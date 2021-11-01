@@ -90,10 +90,10 @@ ENV POSTGRES_HOST=postgres
 # Check if Postgres support needs to be enabled
 RUN ./scripts/postgres_support.sh $POSTGRES
 
-HEALTHCHECK CMD curl --fail http://host.docker.internal:8000/ || exit 1
-
 # Expose MobSF Port and Proxy Port
 EXPOSE 8000 8000 1337 1337
+
+HEALTHCHECK CMD curl --fail http://host.docker.internal:8000/ || exit 1
 
 # Run MobSF
 CMD ["/root/Mobile-Security-Framework-MobSF/scripts/entrypoint.sh"]
